@@ -1,15 +1,15 @@
-import { serve } from '@hono/node-server'
-import { Hono } from 'hono'
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import flowRouter from './routes/flow.route';
 
-const app = new Hono()
+const app = new Hono();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+// ALLOW Angular to talk to Hono
+app.use('/*', cors());
 
-serve({
-  fetch: app.fetch,
-  port: 3000
-}, (info) => {
-  console.log(`Server is running on http://localhost:${info.port}`)
-})
+app.get('/', (c) => c.text('CampusFlow API is Running!'));
+
+// Route groups
+app.route('/api/bookings', flowRouter);
+
+export default app;
