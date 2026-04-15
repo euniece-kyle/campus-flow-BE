@@ -10,12 +10,16 @@ flowRouter.post('/add', FlowController.postBooking);
 
 export default flowRouter;
 
-flowRouter.get('/all-users', async (c) => {
+// Add this into your flow.route.ts file
+flowRouter.get('/users', async (c) => {
   try {
-    // Change 'db' to 'pool' to match your db.ts file
-    const [rows] = await pool.query('SELECT username FROM users');
-    return c.json(rows);
+    // This query pulls the usernames from your campus_flow database
+    const [rows]: any = await pool.query('SELECT username FROM users');
+    
+    // This returns the exact JSON format you need
+    return c.json(rows); 
   } catch (error) {
+    console.error('Database Error:', error);
     return c.json({ error: 'Database connection failed' }, 500);
   }
 });

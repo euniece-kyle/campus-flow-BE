@@ -10,7 +10,7 @@ app.use('/*', cors());
 
 app.get('/', (c) => c.text('CampusFlow API is Running!'));
 
-app.route('/api/bookings', flowRouter);
+app.route('/api', flowRouter);
 
 const port = 3000;
 console.log(`Server is starting...`);
