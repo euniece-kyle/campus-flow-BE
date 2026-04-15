@@ -19,5 +19,14 @@ export const FlowController = {
         } catch (error: any) {
             return c.json({ error: error.message }, 500);
         }
+    },
+
+    fetchUsers: async (c: Context) => { // Removed 'static' and added 'Context' type
+        try {
+            const users = await FlowModel.getAllUsers();
+            return c.json(users);
+        } catch (error) {
+            return c.json({ error: 'Failed to fetch users' }, 500);
+        }
     }
 };
