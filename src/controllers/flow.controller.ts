@@ -21,7 +21,7 @@ export const FlowController = {
         }
     },
 
-    fetchUsers: async (c: Context) => { // Removed 'static' and added 'Context' type
+    fetchUsers: async (c: Context) => {
         try {
             const users = await FlowModel.getAllUsers();
             return c.json(users);

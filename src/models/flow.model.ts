@@ -12,9 +12,9 @@ export const FlowModel = {
                      VALUES (?, ?, ?, ?, ?)`;
         const [result] = await pool.execute(sql, [room_name, booking_date, period, department, booked_by]);
         return result;
-    }, // Added missing comma here
+    },
 
-    getAllUsers: async () => { // Removed 'static'
+    getAllUsers: async () => {
         const [rows] = await pool.query('SELECT username, email FROM users'); 
         return rows;
     }
