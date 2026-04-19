@@ -7,10 +7,9 @@ export const FlowModel = {
     },
 
     createBooking: async (data: any) => {
-        // These keys must match the ones we defined in the controller
         const { room_name, booking_date, period, subject, booked_by } = data;
 
-        // SQL using the exact column names from your latest phpMyAdmin screenshot
+        // SQL MATCH: room_name and subject must exist in phpMyAdmin
         const sql = `INSERT INTO bookings (room_name, booking_date, period, subject, booked_by) 
                      VALUES (?, ?, ?, ?, ?)`;
 

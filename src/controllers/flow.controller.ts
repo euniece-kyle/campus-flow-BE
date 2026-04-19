@@ -22,7 +22,7 @@ export const FlowController = {
                                   String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
                                   String(dateObj.getDate()).padStart(2, '0');
 
-            // Map data to match your latest database column names
+            // PREPARE DATA: Matching your phpMyAdmin column names
             const preparedData = {
                 room_name: body.room_name,
                 booking_date: formattedDate,
