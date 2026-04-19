@@ -14,9 +14,27 @@ export const FlowController = {
     postBooking: async (c: Context) => {
         try {
             const body = await c.req.json();
-            const result = await FlowModel.createBooking(body);
+
+            // PROFESSIONAL DATE CONVERSION
+            // Converts "Sunday, April 19, 2026" into "2026-04-19"
+            const dateObj = new Date(body.booking_date);
+            const formattedDate = dateObj.getFullYear() + '-' + 
+                                  String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                  String(dateObj.getDate()).padStart(2, '0');
+
+            // Map data to match your latest database column names
+            const preparedData = {
+                room_name: body.room_name,
+                booking_date: formattedDate,
+                period: body.period,
+                subject: body.subject, 
+                booked_by: body.booked_by
+            };
+
+            const result = await FlowModel.createBooking(preparedData);
             return c.json({ success: true, result }, 201);
         } catch (error: any) {
+            console.error("Insert Error:", error);
             return c.json({ error: error.message }, 500);
         }
     },
