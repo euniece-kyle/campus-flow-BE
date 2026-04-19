@@ -3,11 +3,11 @@ import { pool } from '../config/db';
 
 const flowRouter = new Hono();
 
-// GET all bookings for the Dashboard - Fetches columns needed for UI logic
+// GET all bookings for the Dashboard
 flowRouter.get('/all-bookings', async (c) => {
   try {
     const [rows]: any = await pool.query(
-      'SELECT id, room_id, booking_date, period, booked_by, booking_type, until_date, status FROM bookings'
+      'SELECT id, room_name, booking_date, period, subject, booked_by, booking_type, until_date, status FROM bookings'
     );
     return c.json(rows);
   } catch (error) {
@@ -25,19 +25,27 @@ flowRouter.get('/users', async (c) => {
   }
 }); 
 
-// POST new booking - Matches your phpMyAdmin schema exactly
+// POST new booking - Fully synchronized with your professional DB
 flowRouter.post('/create', async (c) => {
   const body = await c.req.json();
-  const { room, date, period, bookedBy, bookingType, untilDate } = body;
+  // Using 'subject' from your frontend form
+  const { room, date, period, bookedBy, bookingType, untilDate, subject } = body;
 
   try {
+    // Converts "Sunday, April 19, 2026" into "2026-04-19"
+    const dateObj = new Date(date);
+    const formattedDate = dateObj.getFullYear() + '-' + 
+                          String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                          String(dateObj.getDate()).padStart(2, '0');
+
     const [result] = await pool.query(
-      `INSERT INTO bookings (room_id, booking_date, period, booked_by, booking_type, until_date, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO bookings (room_name, booking_date, period, subject, booked_by, booking_type, until_date, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         room, 
-        date, 
+        formattedDate, 
         period, 
+        subject || 'General', 
         bookedBy, 
         bookingType || 'One-Time', 
         untilDate || null, 
