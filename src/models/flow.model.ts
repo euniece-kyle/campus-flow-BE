@@ -7,25 +7,24 @@ export const FlowModel = {
     },
 
     createBooking: async (data: any) => {
-        const { room_name, booking_date, period, subject, booked_by } = data;
-
-        // Matches your phpMyAdmin: room_name, booking_date, period, subject, booked_by
-        const sql = `INSERT INTO bookings (room_name, booking_date, period, subject, booked_by) 
-                     VALUES (?, ?, ?, ?, ?)`;
-
-        const [result] = await pool.execute(sql, [
-            room_name, 
-            booking_date, 
-            period, 
-            subject, 
-            booked_by
-        ]);
-        
+        const query = `
+            INSERT INTO bookings (room_name, booking_date, period, subject, booked_by, status) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        const params = [
+            data.room_name, 
+            data.booking_date, 
+            data.period, 
+            data.subject, 
+            data.booked_by, 
+            'Confirmed'
+        ];
+        const [result] = await pool.execute(query, params);
         return result;
     },
 
     getAllUsers: async () => {
-        const [rows] = await pool.query('SELECT username, email FROM users'); 
+        const [rows] = await pool.execute('SELECT id, firstName, lastName, email FROM users');
         return rows;
     }
 };

@@ -15,7 +15,6 @@ export const FlowController = {
         try {
             const body = await c.req.json();
 
-            // PROFESSIONAL DATE CONVERSION
             // Converts "Sunday, April 19, 2026" into "2026-04-19"
             const dateObj = new Date(body.booking_date);
             const formattedDate = dateObj.getFullYear() + '-' + 
