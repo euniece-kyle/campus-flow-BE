@@ -3,6 +3,18 @@ import { pool } from '../config/db';
 
 const flowRouter = new Hono();
 
+// GET all bookings for the Dashboard - Fetches columns needed for UI logic
+flowRouter.get('/all-bookings', async (c) => {
+  try {
+    const [rows]: any = await pool.query(
+      'SELECT id, room_id, booking_date, period, booked_by, booking_type, until_date, status FROM bookings'
+    );
+    return c.json(rows);
+  } catch (error) {
+    return c.json({ error: 'Database fetch failed' }, 500);
+  }
+});
+
 // GET users for the 'Booked By' dropdown
 flowRouter.get('/users', async (c) => {
   try {
