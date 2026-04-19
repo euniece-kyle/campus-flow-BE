@@ -12,7 +12,7 @@ flowRouter.get('/users', async (c) => {
     console.error('Database Error:', error);
     return c.json({ error: 'Database connection failed' }, 500);
   }
-});
+}); 
 
 // The "Insert" API for saving new bookings to MySQL
 flowRouter.post('/create', async (c) => {
