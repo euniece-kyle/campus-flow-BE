@@ -3,7 +3,6 @@ import { db, db as pool } from '../config/db';
 
 export const getDashboardStats = async (c: Context) => {
   try {
-    // Querying MySQL for dashboard counters
     const [subjectRows]: any = await pool.execute('SELECT COUNT(*) as total FROM subjects');
     const [bookingRows]: any = await db.execute('SELECT COUNT(*) as total FROM bookings');
 

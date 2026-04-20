@@ -15,13 +15,11 @@ export const FlowController = {
         try {
             const body = await c.req.json();
 
-            // Converts "Sunday, April 19, 2026" into "2026-04-19"
             const dateObj = new Date(body.booking_date);
             const formattedDate = dateObj.getFullYear() + '-' + 
                                   String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
                                   String(dateObj.getDate()).padStart(2, '0');
 
-            // PREPARE DATA: Matching your phpMyAdmin column names
             const preparedData = {
                 room_name: body.room_name,
                 booking_date: formattedDate,
