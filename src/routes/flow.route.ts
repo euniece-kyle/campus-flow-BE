@@ -51,6 +51,32 @@ flowRouter.patch('/subjects/:id', async (c) => {
 
 /* --- BOOKINGS & DASHBOARD ENDPOINTS --- */
 
+flowRouter.post('/bookings', async (c) => {
+  try {
+    const body = await c.req.json();
+    
+    const [result] = await pool.query(
+      `INSERT INTO bookings (room_name, booking_date, period, subject, booked_by, booking_type, until_date, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        body.room_name, 
+        body.booking_date, 
+        body.period, 
+        body.subject, 
+        body.booked_by, 
+        body.booking_type, 
+        body.until_date, 
+        body.status || 'Confirmed'
+      ]
+    );
+
+    return c.json({ success: true, id: (result as any).insertId });
+  } catch (error) {
+    console.error('DB Error:', error);
+    return c.json({ error: 'Database insertion failed' }, 500);
+  }
+});
+
 // 5. Get all bookings (For the grid and dashboard)
 flowRouter.get('/bookings', async (c) => {
   try {
@@ -72,19 +98,6 @@ flowRouter.delete('/bookings/:id', async (c) => {
   }
 });
 
-// 7. Get Stats for Dashboard
-flowRouter.get('/stats', async (c) => {
-  try {
-    const [bookings]: any = await pool.query('SELECT COUNT(*) as count FROM bookings');
-    const [subjects]: any = await pool.query('SELECT COUNT(*) as count FROM subjects');
-    return c.json({
-      totalBookings: bookings[0].count,
-      totalSubjects: subjects[0].count
-    });
-  } catch (error) {
-    return c.json({ error: 'Stats failed' }, 500);
-  }
-});
 
 /* --- USERS ENDPOINT --- */
 flowRouter.get('/users', async (c) => {
@@ -123,6 +136,39 @@ flowRouter.patch('/users/:id/password', async (c) => {
     return c.json({ success: true });
   } catch (error) {
     return c.json({ error: 'Password update failed' }, 500);
+  }
+});
+
+// 7. Get Stats for Dashboard
+flowRouter.get('/stats', async (c) => {
+  try {
+    const [bookings]: any = await pool.query('SELECT COUNT(*) as count FROM bookings');
+    const [subjects]: any = await pool.query('SELECT COUNT(*) as count FROM subjects');
+    return c.json({
+      totalBookings: bookings[0].count,
+      totalSubjects: subjects[0].count
+    });
+  } catch (error) {
+    return c.json({ error: 'Stats failed' }, 500);
+  }
+});
+
+flowRouter.get('/stats', async (c) => {
+  try {
+    // Count total confirmed bookings
+    const [bookingCount]: any = await pool.query('SELECT COUNT(*) as total FROM bookings WHERE status = "Confirmed"');
+    
+    // Get distribution per building for the chart
+    const [distribution]: any = await pool.query(
+      'SELECT SUBSTRING_INDEX(room_name, " ", 1) as building, COUNT(*) as count FROM bookings GROUP BY building'
+    );
+
+    return c.json({
+      activeBookings: bookingCount[0].total,
+      buildingStats: distribution
+    });
+  } catch (error) {
+    return c.json({ error: 'Stats fetch failed' }, 500);
   }
 });
 
