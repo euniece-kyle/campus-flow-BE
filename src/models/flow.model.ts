@@ -1,4 +1,4 @@
-import { pool } from '../config/db';
+import { db as pool } from '../config/db';
 
 export const FlowModel = {
     getAllBookings: async () => {

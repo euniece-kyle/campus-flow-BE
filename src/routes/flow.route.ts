@@ -1,11 +1,8 @@
 import { Hono } from 'hono';
-import { db as pool } from '../config/db'; // Using the alias fix we discussed
+import { db as pool } from '../config/db'; 
 
 const flowRouter = new Hono();
 
-/* --- SUBJECTS ENDPOINTS --- */
-
-// 1. Get all subjects
 flowRouter.get('/subjects', async (c) => {
   try {
     const [rows] = await pool.query('SELECT * FROM subjects ORDER BY name ASC');
@@ -15,7 +12,6 @@ flowRouter.get('/subjects', async (c) => {
   }
 });
 
-// 2. Add new subject
 flowRouter.post('/subjects', async (c) => {
   try {
     const { name } = await c.req.json();
@@ -26,7 +22,6 @@ flowRouter.post('/subjects', async (c) => {
   }
 });
 
-// 3. Delete subject
 flowRouter.delete('/subjects/:id', async (c) => {
   try {
     const id = c.req.param('id');
@@ -37,7 +32,6 @@ flowRouter.delete('/subjects/:id', async (c) => {
   }
 });
 
-// 4. Update subject
 flowRouter.patch('/subjects/:id', async (c) => {
   try {
     const id = c.req.param('id');
@@ -48,8 +42,6 @@ flowRouter.patch('/subjects/:id', async (c) => {
     return c.json({ error: 'Update failed' }, 500);
   }
 });
-
-/* --- BOOKINGS & DASHBOARD ENDPOINTS --- */
 
 flowRouter.post('/bookings', async (c) => {
   try {
@@ -77,7 +69,6 @@ flowRouter.post('/bookings', async (c) => {
   }
 });
 
-// 5. Get all bookings (For the grid and dashboard)
 flowRouter.get('/bookings', async (c) => {
   try {
     const [rows] = await pool.query('SELECT * FROM bookings');
@@ -87,7 +78,6 @@ flowRouter.get('/bookings', async (c) => {
   }
 });
 
-// 6. Delete/Cancel booking
 flowRouter.delete('/bookings/:id', async (c) => {
   try {
     const id = c.req.param('id');
@@ -98,8 +88,6 @@ flowRouter.delete('/bookings/:id', async (c) => {
   }
 });
 
-
-/* --- USERS ENDPOINT --- */
 flowRouter.get('/users', async (c) => {
   try {
     const [rows] = await pool.query('SELECT username FROM users');
@@ -119,7 +107,6 @@ flowRouter.patch('/users/:id', async (c) => {
       [firstName, lastName, id]
     );
 
-    // Fetch the updated user to send back to frontend
     const [rows]: any = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
     return c.json(rows[0]);
   } catch (error) {
@@ -139,15 +126,11 @@ flowRouter.patch('/users/:id/password', async (c) => {
   }
 });
 
-// 7. Get Stats for Dashboard
-// FIXED: Merged the two conflicting /stats routes into one complete endpoint to prevent 404/redundancy
 flowRouter.get('/stats', async (c) => {
   try {
-    // FIXED: Fetching all required dashboard counts in a single route
     const [bookingsCount]: any = await pool.query('SELECT COUNT(*) as total FROM bookings');
     const [subjectsCount]: any = await pool.query('SELECT COUNT(*) as total FROM subjects');
     
-    // FIXED: Added building distribution logic so the Bar Chart has data
     const [distribution]: any = await pool.query(
       'SELECT SUBSTRING_INDEX(room_name, " ", 1) as building, COUNT(*) as count FROM bookings GROUP BY building'
     );
