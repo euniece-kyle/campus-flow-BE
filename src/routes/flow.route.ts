@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import { db } from '../config/db'; // Ensure this points to your database connection file
+import { db } from '../config/db'; 
 
 const flowRouter = new Hono();
 
-// 1. GET all bookings - Fetches data for the grid and charts
+// GET all bookings
 flowRouter.get('/bookings', async (c) => {
   try {
     const [rows] = await db.execute('SELECT * FROM bookings');
@@ -14,7 +14,7 @@ flowRouter.get('/bookings', async (c) => {
   }
 });
 
-// 2. GET all users - Fixes the 404 error and populates "Booked By"
+// FIXED: Added users route to populate "Booked By" dropdown
 flowRouter.get('/users', async (c) => {
   try {
     const [rows] = await db.execute('SELECT username FROM users');
@@ -24,7 +24,7 @@ flowRouter.get('/users', async (c) => {
   }
 });
 
-// 3. GET all subjects - Fixes the 404 error for subjects
+// FIXED: Added subjects route to fetch dynamic department names
 flowRouter.get('/subjects', async (c) => {
   try {
     const [rows] = await db.execute('SELECT name FROM departments'); 
@@ -34,7 +34,7 @@ flowRouter.get('/subjects', async (c) => {
   }
 });
 
-// 4. POST a new booking
+// POST a new booking
 flowRouter.post('/bookings', async (c) => {
   try {
     const body = await c.req.json();
