@@ -14,35 +14,27 @@ flowRouter.get('/bookings', async (c) => {
   }
 });
 
-// FIXED: Added users fetch route
-flowRouter.get('/users', async (c) => {
-  try {
-    const [rows] = await db.execute('SELECT username, first_name, last_name, email FROM users');
-    return c.json(rows);
-  } catch (error) {
-    return c.json({ error: 'Failed to fetch users' }, 500);
-  }
-});
-
-// FIXED: Added user registration/save route to fix empty users table
+// FIXED: Added users route to save logged-in user data to MySQL
 flowRouter.post('/users', async (c) => {
   try {
-    const { username, first_name, last_name, email, password } = await c.req.json();
+    const user = await c.req.json();
     const query = `INSERT INTO users (username, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?)`;
-    await db.execute(query, [username, first_name, last_name, email, password]);
-    return c.json({ success: true, message: 'User saved to database' });
+    await db.execute(query, [user.username, user.firstName, user.lastName, user.email, user.password]);
+    return c.json({ success: true, message: 'User saved' });
   } catch (error) {
+    console.error('User Save Error:', error);
     return c.json({ error: 'Failed to save user' }, 400);
   }
 });
 
-// FIXED: Added subject post route to fix "Failed to add subject" error
+// FIXED: Added subjects route to fix "Failed to add subject" console error
 flowRouter.post('/subjects', async (c) => {
   try {
     const { name } = await c.req.json();
     await db.execute('INSERT INTO departments (name) VALUES (?)', [name]);
     return c.json({ success: true, message: 'Subject added' });
   } catch (error) {
+    console.error('Subject Error:', error);
     return c.json({ error: 'Database error adding subject' }, 500);
   }
 });
