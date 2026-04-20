@@ -12,7 +12,7 @@ app.use('/*', cors());
 
 app.get('/', (c) => c.text('CampusFlow API is Running!'));
 
-// FIXED: Added /api/stats endpoint before flowRouter to handle dashboard data requests
+// FIXED: Enhanced /api/stats to return counts for the Dashboard cards
 app.get('/api/stats', async (c) => {
   try {
     // FIXED: Fetching real-time counts from MySQL for the Dashboard cards
