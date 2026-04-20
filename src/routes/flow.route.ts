@@ -1,61 +1,58 @@
 import { Hono } from 'hono';
-import { pool } from '../config/db';
+// This now matches the 'export const db' in your config/db.ts
+import { db } from '../config/db'; 
 
 const flowRouter = new Hono();
 
-// GET all bookings for the Dashboard
-flowRouter.get('/all-bookings', async (c) => {
+// 1. GET all bookings
+flowRouter.get('/bookings', async (c) => {
   try {
-    const [rows]: any = await pool.query(
-      'SELECT id, room_name, booking_date, period, subject, booked_by, booking_type, until_date, status FROM bookings'
-    );
+    const [rows] = await db.execute('SELECT * FROM bookings');
     return c.json(rows);
   } catch (error) {
-    return c.json({ error: 'Database fetch failed' }, 500);
+    console.error('Database Error:', error);
+    return c.json({ error: 'Internal Server Error' }, 500);
   }
 });
 
-// GET users for the 'Booked By' dropdown
-flowRouter.get('/users', async (c) => {
+// 2. POST a new booking
+flowRouter.post('/bookings', async (c) => {
   try {
-    const [rows]: any = await pool.query('SELECT username FROM users');
-    return c.json(rows); 
-  } catch (error) {
-    return c.json({ error: 'Database connection failed' }, 500);
-  }
-}); 
-
-// POST new booking - Fully synchronized with your professional DB
-flowRouter.post('/create', async (c) => {
-  const body = await c.req.json();
-  // Using 'subject' from your frontend form
-  const { room, date, period, bookedBy, bookingType, untilDate, subject } = body;
-
-  try {
-    // Converts "Sunday, April 19, 2026" into "2026-04-19"
-    const dateObj = new Date(date);
-    const formattedDate = dateObj.getFullYear() + '-' + 
-                          String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + 
-                          String(dateObj.getDate()).padStart(2, '0');
-
-    const [result] = await pool.query(
-      `INSERT INTO bookings (room_name, booking_date, period, subject, booked_by, booking_type, until_date, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        room, 
-        formattedDate, 
-        period, 
-        subject || 'General', 
-        bookedBy, 
-        bookingType || 'One-Time', 
-        untilDate || null, 
-        'Confirmed' 
-      ]
-    );
-    return c.json({ success: true, message: 'Booking saved to MySQL!' });
+    const body = await c.req.json();
+    const { room_name, booking_date, period, subject, booked_by, booking_type, until_date, status } = body;
+    
+    const query = `
+      INSERT INTO bookings (room_name, booking_date, period, subject, booked_by, booking_type, until_date, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    
+    await db.execute(query, [
+      room_name, 
+      booking_date, 
+      period, 
+      subject, 
+      booked_by, 
+      booking_type, 
+      until_date, 
+      status || 'Confirmed'
+    ]);
+    
+    return c.json({ success: true, message: 'Booking added successfully' });
   } catch (error) {
     console.error('Insert Error:', error);
-    return c.json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }, 500);
+    return c.json({ error: 'Failed to add booking' }, 400);
+  }
+});
+
+// 3. DELETE a booking
+flowRouter.delete('/bookings/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    await db.execute('DELETE FROM bookings WHERE id = ?', [id]);
+    return c.json({ success: true, message: 'Booking deleted' });
+  } catch (error) {
+    console.error('Delete Error:', error);
+    return c.json({ error: 'Delete failed' }, 500);
   }
 });
 
