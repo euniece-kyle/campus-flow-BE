@@ -140,35 +140,27 @@ flowRouter.patch('/users/:id/password', async (c) => {
 });
 
 // 7. Get Stats for Dashboard
+// FIXED: Merged the two conflicting /stats routes into one complete endpoint to prevent 404/redundancy
 flowRouter.get('/stats', async (c) => {
   try {
-    const [bookings]: any = await pool.query('SELECT COUNT(*) as count FROM bookings');
-    const [subjects]: any = await pool.query('SELECT COUNT(*) as count FROM subjects');
-    return c.json({
-      totalBookings: bookings[0].count,
-      totalSubjects: subjects[0].count
-    });
-  } catch (error) {
-    return c.json({ error: 'Stats failed' }, 500);
-  }
-});
-
-flowRouter.get('/stats', async (c) => {
-  try {
-    // Count total confirmed bookings
-    const [bookingCount]: any = await pool.query('SELECT COUNT(*) as total FROM bookings WHERE status = "Confirmed"');
+    // FIXED: Fetching all required dashboard counts in a single route
+    const [bookingsCount]: any = await pool.query('SELECT COUNT(*) as total FROM bookings');
+    const [subjectsCount]: any = await pool.query('SELECT COUNT(*) as total FROM subjects');
     
-    // Get distribution per building for the chart
+    // FIXED: Added building distribution logic so the Bar Chart has data
     const [distribution]: any = await pool.query(
       'SELECT SUBSTRING_INDEX(room_name, " ", 1) as building, COUNT(*) as count FROM bookings GROUP BY building'
     );
 
     return c.json({
-      activeBookings: bookingCount[0].total,
+      totalBookings: bookingsCount[0].total,
+      totalSubjects: subjectsCount[0].total,
+      activeBookings: bookingsCount[0].total, // Standardized for frontend
       buildingStats: distribution
     });
   } catch (error) {
-    return c.json({ error: 'Stats fetch failed' }, 500);
+    console.error('Stats fetch failed:', error);
+    return c.json({ error: 'Stats failed' }, 500);
   }
 });
 
