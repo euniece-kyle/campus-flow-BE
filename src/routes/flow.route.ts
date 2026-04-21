@@ -3,6 +3,8 @@ import { db as pool } from '../config/db';
 
 const flowRouter = new Hono();
 
+// --- SUBJECTS ROUTES ---
+
 flowRouter.get('/subjects', async (c) => {
   try {
     const [rows] = await pool.query('SELECT * FROM subjects ORDER BY name ASC');
@@ -43,10 +45,13 @@ flowRouter.patch('/subjects/:id', async (c) => {
   }
 });
 
+// --- BOOKINGS ROUTES ---
+
 flowRouter.post('/bookings', async (c) => {
   try {
     const body = await c.req.json();
     
+    // Explicitly inserting until_date for Recurring bookings (Requirement F-1.8/F-1.9)
     const [result] = await pool.query(
       `INSERT INTO bookings (room_name, booking_date, period, subject, booked_by, booking_type, until_date, status) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -57,7 +62,7 @@ flowRouter.post('/bookings', async (c) => {
         body.subject, 
         body.booked_by, 
         body.booking_type, 
-        body.until_date, 
+        body.until_date || null, // Handles the "Until..." date
         body.status || 'Confirmed'
       ]
     );
@@ -71,6 +76,7 @@ flowRouter.post('/bookings', async (c) => {
 
 flowRouter.get('/bookings', async (c) => {
   try {
+    // SELECT * ensures all columns (including until_date) reach the Angular frontend
     const [rows] = await pool.query('SELECT * FROM bookings');
     return c.json(rows);
   } catch (error) {
@@ -87,6 +93,8 @@ flowRouter.delete('/bookings/:id', async (c) => {
     return c.json({ error: 'Cancel failed' }, 500);
   }
 });
+
+// --- USER ROUTES ---
 
 flowRouter.get('/users', async (c) => {
   try {
@@ -126,6 +134,8 @@ flowRouter.patch('/users/:id/password', async (c) => {
   }
 });
 
+// --- DASHBOARD STATS ---
+
 flowRouter.get('/stats', async (c) => {
   try {
     const [bookingsCount]: any = await pool.query('SELECT COUNT(*) as total FROM bookings');
@@ -138,7 +148,7 @@ flowRouter.get('/stats', async (c) => {
     return c.json({
       totalBookings: bookingsCount[0].total,
       totalSubjects: subjectsCount[0].total,
-      activeBookings: bookingsCount[0].total, // Standardized for frontend
+      activeBookings: bookingsCount[0].total, 
       buildingStats: distribution
     });
   } catch (error) {
